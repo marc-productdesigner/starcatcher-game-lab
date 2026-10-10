@@ -319,7 +319,7 @@
   function drawFrame(cmds) {
     lastCmds = cmds;
     if (!cmds.length) {
-      drawIdle("Nothing to draw here", "This one just talks. Read the speech box below.");
+      drawIdle("Nothing to draw here", "This one just talks. Check the speech box.");
     } else {
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       ctx.fillStyle = "#fff";

@@ -1,0 +1,10 @@
+const fs = require("fs");
+const r = (f) => fs.readFileSync(f, "utf8");
+let html = r("page.html");
+const put = (tag, content) => { html = html.split("<!--" + tag + "-->").join(content); };
+put("CSS", r("style.css"));
+put("LESSONS", r("lessons.js"));
+put("ENGINE", r("engine.js"));
+put("APP", r("app.js"));
+fs.writeFileSync("index.html", html);
+console.log("index.html", (html.length / 1024).toFixed(1) + " KB");

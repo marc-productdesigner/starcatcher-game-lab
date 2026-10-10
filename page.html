@@ -1,0 +1,196 @@
+<title>Starcatcher Game Lab</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Lilita+One&family=Nunito:wght@400;600;800&display=swap">
+<style>
+<!--CSS-->
+.stack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z" fill="var(--sun)" stroke="var(--line)" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <span>Starcatcher Game Lab</span>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Sections">
+      <button class="tab" id="tab-lessons" role="tab" aria-selected="true">Lessons</button>
+      <button class="tab" id="tab-grownups" role="tab" aria-selected="false">For grown-ups</button>
+    </div>
+    <div class="meter" id="meter" role="status" aria-live="polite">
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      <span><span id="starCount">0</span> of 11 stars</span>
+    </div>
+  </header>
+
+  <main>
+    <section id="view-lessons">
+      <div class="trophy" id="trophy" hidden>
+        <svg width="56" height="56" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.3 1.3-6.6L2.5 9.4l6.6-.8z" fill="#fff" stroke="var(--line)" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        <div>
+          <h2>All 11 stars! You are a game maker.</h2>
+          <p>You built a real game from nothing. Go show somebody, then keep remixing it.</p>
+        </div>
+      </div>
+
+      <nav class="path" id="path" aria-label="Levels"></nav>
+
+      <div class="workspace">
+        <div class="col">
+          <article class="card lesson" id="lesson" aria-live="polite"></article>
+
+          <details class="card cheat">
+            <summary>Code cheat sheet</summary>
+            <dl>
+              <dt>say("Hi!")</dt><dd>The computer talks. It shows up in the speech box.</dd>
+              <dt>background("skyblue")</dt><dd>Paints the whole stage one color.</dd>
+              <dt>circle(x, y, size, "gold")</dt><dd>A circle. x and y are the middle, size is how far it reaches from the middle.</dd>
+              <dt>box(x, y, width, height, "red")</dt><dd>A rectangle. x and y are the top-left corner.</dd>
+              <dt>emoji("🚀", x, y, size)</dt><dd>Draws a picture from the emoji keyboard, centered on x and y.</dd>
+              <dt>write("Score", x, y, size, "white")</dt><dd>Writes words. x is the left edge.</dd>
+              <dt>onFrame(() =&gt; { ... })</dt><dd>Runs the code inside about 60 times every second.</dd>
+              <dt>keyDown("left")</dt><dd>True while the key is held. Also "right", "up", "down" and "space". A, D, W and S work too.</dd>
+              <dt>random(1, 6)</dt><dd>A surprise whole number between the two numbers.</dd>
+              <dt>distance(x1, y1, x2, y2)</dt><dd>How far apart two spots are.</dd>
+              <dt>beep(440)</dt><dd>Plays a note. Try 200 for low, 440 for middle, 880 for high.</dd>
+              <dt>stopGame()</dt><dd>Freezes the game. Press Run to start again.</dd>
+              <dt>width and height</dt><dd>The stage size: 480 across and 320 down.</dd>
+              <dt>Colors</dt><dd>Use names like "tomato", "gold", "limegreen", "skyblue", "midnightblue", "hotpink", or codes like "#ff66cc".</dd>
+            </dl>
+          </details>
+        </div>
+
+        <div class="col">
+          <section class="card">
+            <div class="card-head">
+              <h2>Your code</h2>
+              <button class="btn btn-small" id="reset" type="button">Start over</button>
+              <button class="btn btn-small btn-stop" id="stop" type="button">
+                <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="2" fill="currentColor"/></svg>Stop
+              </button>
+              <button class="btn btn-run" id="run" type="button" title="Run (Ctrl+Enter)">
+                <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 1.5v15l13-7.5z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>Run
+              </button>
+            </div>
+            <div class="editor">
+              <div class="gutter" id="gutter" aria-hidden="true"></div>
+              <textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" wrap="off" aria-label="Your code. Press Escape then Tab to leave the editor."></textarea>
+            </div>
+            <div class="chips" id="chips" aria-label="Symbol keys"></div>
+          </section>
+
+          <section class="card">
+            <div class="card-head">
+              <h2>The stage</h2>
+              <span class="status" id="status" data-s="ready">Ready</span>
+            </div>
+            <div class="stage-grid">
+              <div>
+                <div class="stage-wrap" id="stageWrap" tabindex="0" aria-label="Game stage. Press Run, then use the arrow keys.">
+                  <canvas id="stage" role="img" aria-label="The stage where your drawing or game appears"></canvas>
+                </div>
+                <div class="tools">
+                  <label for="showGrid"><input type="checkbox" id="showGrid">Show grid</label>
+                  <label for="sound"><input type="checkbox" id="sound" checked>Sound</label>
+                  <span class="coords" id="coords" aria-hidden="true">x &ndash;   y &ndash;</span>
+                </div>
+                <div class="pad" id="pad" aria-label="On-screen controls">
+                  <button type="button" data-key="left" aria-label="Left">&#9664;</button>
+                  <button type="button" data-key="right" aria-label="Right">&#9654;</button>
+                  <button type="button" data-key="up" aria-label="Up">&#9650;</button>
+                  <button type="button" data-key="down" aria-label="Down">&#9660;</button>
+                  <button type="button" data-key="space" class="space" aria-label="Space">Space</button>
+                </div>
+              </div>
+              <div class="stack">
+                <div class="say" id="say" aria-live="polite"></div>
+                <div class="oops" id="oops" role="alert" hidden></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-grownups" hidden>
+      <div class="grown">
+        <div class="card">
+          <p class="eyebrow">For grown-ups</p>
+          <h1>The plan</h1>
+          <p>Your child learns real JavaScript by building one game, step by step. The last level is a finished star-catching game that they have taken apart, understood and remixed.</p>
+          <p>Everything runs on this page. Nothing is installed, nothing is uploaded and no account is needed.</p>
+        </div>
+
+        <div class="card">
+          <h2>At a glance</h2>
+          <ul>
+            <li><strong>11 levels</strong>, <span id="totalTime">about 5 hours</span> in total. The last level is open-ended and can run as long as she likes.</li>
+            <li><strong>Two or three short sessions a week</strong>, 20 to 30 minutes each. One level per sitting is plenty.</li>
+            <li><strong>Best on a laptop.</strong> On a tablet, the symbol buttons under the editor and the on-screen arrows under the stage make it workable.</li>
+            <li><strong>Saved on this device.</strong> Her stars and her code live in this browser. Clearing the browser's site data erases them.</li>
+            <li><strong>A session shape that works:</strong> 5 minutes to run last time's game, 15 minutes on the new level, 5 minutes of free tinkering.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>How to sit with her</h2>
+          <p>The aim is a kid who is comfortable changing code and seeing what happens. You do not need to know how to code.</p>
+          <div class="moves">
+            <div class="move"><h3>Predict, then run</h3><p>Before she presses Run, ask what she thinks will happen. Being wrong is useful information, not a failure.</p></div>
+            <div class="move"><h3>Change one thing</h3><p>Invite her to change one number and watch what moves. Silly numbers are encouraged.</p></div>
+            <div class="move"><h3>Ask, don't tell</h3><p>When something breaks: What did you expect? What happened instead? What is different between the two?</p></div>
+            <div class="move"><h3>Let the bug speak</h3><p>Error messages are written in plain words and point to the line. Most bugs are a missing quote, a missing bracket, or a capital letter.</p></div>
+            <div class="move"><h3>Hints before answers</h3><p>Each level has hints, then a peek at one possible answer. There is no penalty for using them.</p></div>
+            <div class="move"><h3>Praise the process</h3><p>Notice when she tries something new, reads an error, or fixes her own typo. Those habits matter more than finishing fast.</p></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Level by level</h2>
+          <div class="table-scroll">
+            <table class="plan">
+              <thead><tr><th>#</th><th>Level</th><th>Big idea</th><th>Time</th><th>A question to ask her</th></tr></thead>
+              <tbody id="planBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>If something is not working</h2>
+          <ul>
+            <li><strong>Arrow keys do nothing.</strong> Press Run, then click once on the stage. On a tablet, use the on-screen buttons under the stage.</li>
+            <li><strong>No sound.</strong> Check that Sound is ticked under the stage. Some tablets mute web pages when the silent switch is on.</li>
+            <li><strong>The code is a mess.</strong> Ctrl+Z (Cmd+Z on a Mac) undoes changes in the editor. Start over brings back the starting code for that level.</li>
+            <li><strong>It seems frozen.</strong> Press Stop. A loop that never ends cannot hurt anything, and the page will tell her what happened.</li>
+            <li><strong>Typing is hard on a tablet.</strong> The symbol buttons add brackets, quotes and operators in one tap, and Enter keeps her indentation.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>After level 11</h2>
+          <ul>
+            <li>Let her design a second game with the same tools: a runner, a maze, a pet that she feeds.</li>
+            <li>If she likes making animations and stories, a block-based tool like Scratch is a gentle next stop. What she learned here (variables, loops, if, input) works the same way there.</li>
+            <li>When she wants more, Python or a real web page are good next languages. The big ideas carry over to nearly every language.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>Progress</h2>
+          <div class="progress-row">
+            <p id="progressText"></p>
+            <button class="btn btn-small btn-stop" id="resetAll" type="button">Erase all progress</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+<!--LESSONS-->
+</script>
+<script>
+<!--ENGINE-->
+</script>
+<script>
+<!--APP-->
+</script>

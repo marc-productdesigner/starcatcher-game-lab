@@ -63,8 +63,10 @@
   color-scheme: dark;
 }
 
+[hidden] { display: none !important; }
 * { box-sizing: border-box; }
 body {
+  margin: 0;
   background-color: var(--bg);
   background-image:
     linear-gradient(var(--grid) 1px, transparent 1px),
@@ -333,6 +335,15 @@ button { font-family: inherit; color: inherit; touch-action: manipulation; }
 }
 @media (max-width: 980px) {
   .workspace { grid-template-columns: minmax(0, 1fr); }
+  .col { display: contents; }
+  .lesson { order: 1; }
+  .card-code { order: 2; }
+  .card-stage { order: 3; scroll-margin-top: 12px; }
+  .cheat { order: 4; }
+}
+@media (max-width: 1239px) {
+  .stack { order: -1; }
+  .say { min-height: 64px; }
 }
 @media (max-width: 560px) {
   body { font-size: 16px; }

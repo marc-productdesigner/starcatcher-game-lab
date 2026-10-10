@@ -23,9 +23,9 @@ Open `index.html` in a browser, or serve this folder (for example with GitHub Pa
 | `app.js` | The page: editor, stage, hints, progress, grown-ups tab |
 | `style.css` | Styles |
 | `page.html` | Page template |
-| `build.js` | Combines the files above into `index.html` |
+| `build.js` | Combines the files above into `index.html` (the complete page) and `artifact.html` (a fragment for Claude's artifact viewer, not committed) |
 | `test.js` | Runs every level's starter and answer code and checks behaviour |
-| `index.html` | The built, self-contained page |
+| `index.html` | The built, self-contained page that GitHub Pages serves |
 
 ## Edit and rebuild
 

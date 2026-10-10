@@ -514,8 +514,8 @@
     clearSay();
     lastCmds = null;
     pendingFrame = null;
-    const code = editor.value;
-    store.set("cgl-code-" + LESSONS[cur].id, code);
+    const code = editor.value.replace(/[\u201C\u201D\u201E]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/[\u00A0\u2007\u202F]/g, " ");
+    store.set("cgl-code-" + LESSONS[cur].id, editor.value);
     const built = buildWorkerSource(code);
     lastOffset = built.offset;
     initAudio();
@@ -555,6 +555,15 @@
       showOops({ name: nm, message: msg, line: line });
     };
     stageWrap.focus({ preventScroll: true });
+    const calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const behavior = calm ? "auto" : "smooth";
+    if (window.matchMedia && matchMedia("(max-width: 980px)").matches) {
+      const card = $("#stageCard");
+      if (card) card.scrollIntoView({ block: "start", behavior: behavior });
+    } else {
+      const r = stageWrap.getBoundingClientRect();
+      if (r.bottom > window.innerHeight || r.top < 0) stageWrap.scrollIntoView({ block: "nearest", behavior: behavior });
+    }
   }
   function stopRun() {
     if (!worker) return;

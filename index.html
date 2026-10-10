@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Starcatcher Game Lab</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Lilita+One&family=Nunito:wght@400;600;800&display=swap">
 <style>
@@ -66,8 +71,10 @@
   color-scheme: dark;
 }
 
+[hidden] { display: none !important; }
 * { box-sizing: border-box; }
 body {
+  margin: 0;
   background-color: var(--bg);
   background-image:
     linear-gradient(var(--grid) 1px, transparent 1px),
@@ -336,6 +343,15 @@ button { font-family: inherit; color: inherit; touch-action: manipulation; }
 }
 @media (max-width: 980px) {
   .workspace { grid-template-columns: minmax(0, 1fr); }
+  .col { display: contents; }
+  .lesson { order: 1; }
+  .card-code { order: 2; }
+  .card-stage { order: 3; scroll-margin-top: 12px; }
+  .cheat { order: 4; }
+}
+@media (max-width: 1239px) {
+  .stack { order: -1; }
+  .say { min-height: 64px; }
 }
 @media (max-width: 560px) {
   body { font-size: 16px; }
@@ -350,6 +366,9 @@ button { font-family: inherit; color: inherit; touch-action: manipulation; }
 
 .stack { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 </style>
+</head>
+<body>
+
 
 <div class="wrap">
   <header class="top">
@@ -405,7 +424,7 @@ button { font-family: inherit; color: inherit; touch-action: manipulation; }
         </div>
 
         <div class="col">
-          <section class="card">
+          <section class="card card-code">
             <div class="card-head">
               <h2>Your code</h2>
               <button class="btn btn-small" id="reset" type="button">Start over</button>
@@ -423,7 +442,7 @@ button { font-family: inherit; color: inherit; touch-action: manipulation; }
             <div class="chips" id="chips" aria-label="Symbol keys"></div>
           </section>
 
-          <section class="card">
+          <section class="card card-stage" id="stageCard">
             <div class="card-head">
               <h2>The stage</h2>
               <span class="status" id="status" data-s="ready">Ready</span>
@@ -1932,8 +1951,8 @@ if (typeof module !== "undefined") module.exports = { workerEngine, ENGINE_SRC, 
     clearSay();
     lastCmds = null;
     pendingFrame = null;
-    const code = editor.value;
-    store.set("cgl-code-" + LESSONS[cur].id, code);
+    const code = editor.value.replace(/[\u201C\u201D\u201E]/g, '"').replace(/[\u2018\u2019]/g, "'").replace(/[\u00A0\u2007\u202F]/g, " ");
+    store.set("cgl-code-" + LESSONS[cur].id, editor.value);
     const built = buildWorkerSource(code);
     lastOffset = built.offset;
     initAudio();
@@ -1973,6 +1992,15 @@ if (typeof module !== "undefined") module.exports = { workerEngine, ENGINE_SRC, 
       showOops({ name: nm, message: msg, line: line });
     };
     stageWrap.focus({ preventScroll: true });
+    const calm = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const behavior = calm ? "auto" : "smooth";
+    if (window.matchMedia && matchMedia("(max-width: 980px)").matches) {
+      const card = $("#stageCard");
+      if (card) card.scrollIntoView({ block: "start", behavior: behavior });
+    } else {
+      const r = stageWrap.getBoundingClientRect();
+      if (r.bottom > window.innerHeight || r.top < 0) stageWrap.scrollIntoView({ block: "nearest", behavior: behavior });
+    }
   }
   function stopRun() {
     if (!worker) return;
@@ -2276,3 +2304,6 @@ if (typeof module !== "undefined") module.exports = { workerEngine, ENGINE_SRC, 
 })();
 
 </script>
+
+</body>
+</html>

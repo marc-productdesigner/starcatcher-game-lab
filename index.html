@@ -321,6 +321,14 @@ button { font-family: inherit; color: inherit; touch-action: manipulation; }
 .plan .fit { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .progress-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
 .progress-row p { margin: 0; }
+.grown > .card > h3 { font-size: 20px; margin: 18px 0 6px; }
+.savebox {
+  display: block; width: 100%; margin: 12px 0; padding: 10px 12px; resize: vertical;
+  background: var(--code-bg); color: var(--code-ink);
+  border: 3px solid var(--line); border-radius: 10px;
+  font: 13px/1.5 var(--font-code); font-variant-ligatures: none;
+}
+#saveMsg, #loadMsg { font-weight: 800; font-size: 15px; }
 
 /* ---------- responsive ---------- */
 @media (min-width: 1240px) {
@@ -509,6 +517,22 @@ button { font-family: inherit; color: inherit; touch-action: manipulation; }
             <li>If she likes making animations and stories, a block-based tool like Scratch is a gentle next stop. What she learned here (variables, loops, if, input) works the same way there.</li>
             <li>When she wants more, Python or a real web page are good next languages. The big ideas carry over to nearly every language.</li>
           </ul>
+        </div>
+
+        <div class="card">
+          <h2>Save her progress</h2>
+          <p>Browsers can erase a page's saved data if it goes unused for a while. A save code is a copy you keep. Make one now and then, and paste it somewhere safe, like Notes or an email to yourself.</p>
+          <div class="progress-row">
+            <button class="btn btn-small btn-sun" id="makeSave" type="button">Make save code</button>
+            <span id="saveMsg" role="status"></span>
+          </div>
+          <textarea id="saveOut" class="savebox" readonly rows="3" aria-label="Save code" placeholder="Your save code appears here"></textarea>
+          <h3>Load a save code</h3>
+          <textarea id="saveIn" class="savebox" rows="3" aria-label="Paste a save code" placeholder="Paste a save code here"></textarea>
+          <div class="progress-row">
+            <button class="btn btn-small" id="loadSave" type="button">Load progress</button>
+            <span id="loadMsg" role="status"></span>
+          </div>
         </div>
 
         <div class="card">
@@ -1414,6 +1438,11 @@ if (typeof module !== "undefined") module.exports = { workerEngine, ENGINE_SRC, 
         localStorage.setItem(k, JSON.stringify(v));
       } catch (e) {}
     },
+    remove(k) {
+      try {
+        localStorage.removeItem(k);
+      } catch (e) {}
+    },
     clearAll() {
       try {
         for (let i = localStorage.length - 1; i >= 0; i--) {
@@ -1581,7 +1610,11 @@ if (typeof module !== "undefined") module.exports = { workerEngine, ENGINE_SRC, 
     hideOops();
     clearTimeout(saveTimer);
     const id = LESSONS[cur].id;
-    saveTimer = setTimeout(() => store.set("cgl-code-" + id, editor.value), 300);
+    const val = editor.value;
+    saveTimer = setTimeout(() => {
+      saveTimer = null;
+      store.set("cgl-code-" + id, val);
+    }, 300);
   });
   editor.addEventListener("scroll", () => {
     gutter.scrollTop = editor.scrollTop;
@@ -2078,6 +2111,11 @@ if (typeof module !== "undefined") module.exports = { workerEngine, ENGINE_SRC, 
   });
 
   function loadLesson(i) {
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+      saveTimer = null;
+      store.set("cgl-code-" + LESSONS[cur].id, editor.value);
+    }
     cur = Math.min(Math.max(i, 0), LESSONS.length - 1);
     store.set("cgl-cur", cur);
     const L = LESSONS[cur];
@@ -2145,7 +2183,91 @@ if (typeof module !== "undefined") module.exports = { workerEngine, ENGINE_SRC, 
     });
   });
 
+  // ---------- save codes ----------
+  const b64e = (s) => btoa(unescape(encodeURIComponent(s)));
+  const b64d = (s) => decodeURIComponent(escape(atob(s)));
+  function makeSaveCode() {
+    const data = { v: 1, done: Array.from(done).sort((x, y) => x - y), cur: cur, code: {}, checks: {} };
+    LESSONS.forEach((L) => {
+      let c = store.get("cgl-code-" + L.id, null);
+      if (L.id === LESSONS[cur].id) c = editor.value;
+      if (typeof c === "string" && c !== L.starter) data.code[L.id] = c;
+      const ch = store.get("cgl-checks-" + L.id, []);
+      if (ch.length) data.checks[L.id] = ch;
+    });
+    return "SGL1:" + b64e(JSON.stringify(data));
+  }
+  function applySaveCode(raw) {
+    const s = String(raw || "").replace(/\s+/g, "");
+    if (s.indexOf("SGL1:") !== 0) return "That does not look like a save code. It should start with SGL1:";
+    let data;
+    try {
+      data = JSON.parse(b64d(s.slice(5)));
+    } catch (e) {
+      return "That save code looks damaged. Copy all of it again.";
+    }
+    if (!data || data.v !== 1 || !Array.isArray(data.done)) return "That save code looks damaged. Copy all of it again.";
+    const ids = LESSONS.map((L) => L.id);
+    done.clear();
+    data.done.forEach((id) => {
+      if (ids.indexOf(id) >= 0) done.add(id);
+    });
+    store.set("cgl-done", Array.from(done));
+    const code = data.code || {};
+    const checks = data.checks || {};
+    ids.forEach((id) => {
+      if (typeof code[id] === "string" && code[id].length < 30000) store.set("cgl-code-" + id, code[id]);
+      else store.remove("cgl-code-" + id);
+      if (Array.isArray(checks[id])) store.set("cgl-checks-" + id, checks[id].filter((n) => Number.isInteger(n) && n >= 0 && n < 20));
+      else store.remove("cgl-checks-" + id);
+    });
+    for (const k in hintShown) delete hintShown[k];
+    for (const k in answerShown) delete answerShown[k];
+    updateMeter(false);
+    renderGrownProgress();
+    loadLesson(Math.min(Math.max(parseInt(data.cur, 10) || 0, 0), LESSONS.length - 1));
+    return "";
+  }
+  $("#makeSave").addEventListener("click", () => {
+    const out = $("#saveOut");
+    const msg = $("#saveMsg");
+    out.value = makeSaveCode();
+    const fallback = () => {
+      out.focus();
+      out.select();
+      msg.textContent = "Select all of the code and copy it.";
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(out.value).then(() => {
+          msg.textContent = "Copied! Paste it somewhere safe.";
+        }, fallback);
+      } else {
+        fallback();
+      }
+    } catch (e) {
+      fallback();
+    }
+  });
+  $("#loadSave").addEventListener("click", (e) => {
+    const raw = $("#saveIn").value;
+    const msg = $("#loadMsg");
+    msg.textContent = "";
+    if (!raw.trim()) {
+      msg.textContent = "Paste a save code first.";
+      return;
+    }
+    arm(e.currentTarget, "Replace progress? Click again", () => {
+      const problem = applySaveCode(raw);
+      msg.textContent = problem || "Loaded! Her stars and code are back.";
+      if (!problem) $("#saveIn").value = "";
+    });
+  });
+
   // ---------- go ----------
+  try {
+    if (navigator.storage && navigator.storage.persist) navigator.storage.persist();
+  } catch (e) {}
   renderPlan();
   renderGrownProgress();
   updateMeter(false);

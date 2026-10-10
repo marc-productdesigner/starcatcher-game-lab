@@ -318,6 +318,14 @@ button { font-family: inherit; color: inherit; touch-action: manipulation; }
 .plan .fit { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .progress-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
 .progress-row p { margin: 0; }
+.grown > .card > h3 { font-size: 20px; margin: 18px 0 6px; }
+.savebox {
+  display: block; width: 100%; margin: 12px 0; padding: 10px 12px; resize: vertical;
+  background: var(--code-bg); color: var(--code-ink);
+  border: 3px solid var(--line); border-radius: 10px;
+  font: 13px/1.5 var(--font-code); font-variant-ligatures: none;
+}
+#saveMsg, #loadMsg { font-weight: 800; font-size: 15px; }
 
 /* ---------- responsive ---------- */
 @media (min-width: 1240px) {
